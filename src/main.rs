@@ -1,7 +1,14 @@
+mod hittable;
 mod ray;
+mod sphere;
 mod vec3;
+mod world;
+
+use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 use crate::vec3::{Color, Point3, Vec3};
+use crate::world::World;
 use std::fs::File;
 use std::io::{BufWriter, Error, Write};
 
@@ -9,29 +16,25 @@ const IMAGE_WIDTH: f32 = 400.0;
 const ASPECT_RATIO: f32 = 16.0 / 9.0;
 const IMAGE_HEIGHT: f32 = IMAGE_WIDTH / ASPECT_RATIO;
 
-fn ray_color(r: Ray) -> Color {
-    if hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, &r) {
-        return Color::new(1.0, 0.0, 0.0);
+fn ray_color(r: Ray, world: &World) -> Color {
+    if let Some(hit_record) = world.hit(r, 0.0, std::f32::INFINITY) {
+        return 0.5 * (hit_record.normal + Color::diagonal(1.0));
     }
+
     let unit_direction = r.direction.unit_vector();
     let t = 0.5 * (unit_direction.y() + 1.0);
 
     (1.0 - t) * Color::diagonal(1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn hit_sphere(center: Point3, radius: f32, r: &Ray) -> bool {
-    let oc = r.origin - center;
-    let a = r.direction.dot(r.direction);
-    let b = 2.0 * oc.dot(r.direction);
-    let c = oc.dot(oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c; // b^2 - 4ac from the quadratic equation
-    discriminant > 0.0 // a 0 for the discriminant means there is at least one intersection between this ray and the sphere
-}
-
 fn main() -> Result<(), Error> {
     let viewport_height = 2.0;
     let viewport_width = ASPECT_RATIO * viewport_height;
     let focal_length = 1.0;
+
+    let mut world = World::new();
+    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     let origin = Point3::default();
     let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
@@ -57,7 +60,7 @@ fn main() -> Result<(), Error> {
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
 
-            let pixel_color = ray_color(r);
+            let pixel_color = ray_color(r, &world);
 
             f.write(pixel_color.color().as_bytes())?;
         }
