@@ -1,3 +1,4 @@
+use crate::random::{random_f32, random_f32_range};
 use std::ops;
 
 #[derive(Clone, Copy)]
@@ -53,19 +54,29 @@ impl Vec3 {
         self / div
     }
 
-    pub fn color(self, samples: f32) -> String {
+    pub fn color(self, samples: f32) -> (u8, u8, u8) {
         let mut r = self.x();
         let mut g = self.y();
         let mut b = self.z();
         let scale = 1.0 / samples;
 
-        r *= scale;
-        g *= scale;
-        b *= scale;
-        let ir = (256.0 * r.clamp(0.0, 0.999)) as i32;
-        let ig = (256.0 * g.clamp(0.0, 0.999)) as i32;
-        let ib = (256.0 * b.clamp(0.0, 0.999)) as i32;
-        format!("{ir} {ig} {ib}\n")
+        r = (scale * r).sqrt();
+        g = (scale * g).sqrt();
+        b = (scale * b).sqrt();
+
+        let ir = (256.0 * r.clamp(0.0, 0.999)) as u8;
+        let ig = (256.0 * g.clamp(0.0, 0.999)) as u8;
+        let ib = (256.0 * b.clamp(0.0, 0.999)) as u8;
+        (ir, ig, ib)
+        // format!("{ir} {ig} {ib}\n")
+    }
+    pub fn near_zero(self) -> bool {
+        let s = 1e-8;
+        self.x().abs() < s && self.y().abs() < s && self.z().abs() < s
+    }
+
+    pub fn reflect(self, n: Vec3) -> Vec3 {
+        self - 2.0 * self.dot(n) * n
     }
 }
 
@@ -181,6 +192,32 @@ impl std::fmt::Display for Vec3 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {} {}", self.x(), self.y(), self.z())
     }
+}
+
+pub fn random() -> Vec3 {
+    Vec3::new(random_f32(), random_f32(), random_f32())
+}
+
+pub fn random_range(min: f32, max: f32) -> Vec3 {
+    Vec3::new(
+        random_f32_range(min..=max),
+        random_f32_range(min..=max),
+        random_f32_range(min..=max),
+    )
+}
+
+pub fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let point = random_range(-1.0, 1.0);
+        if point.length_squared() >= 1.0 {
+            continue;
+        };
+        return point;
+    }
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    random_in_unit_sphere().unit_vector()
 }
 
 pub type Point3 = Vec3;

@@ -1,15 +1,28 @@
+use std::rc::Rc;
+use std::sync::Arc;
+
 use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
+use crate::scatterable::Scatterable;
 use crate::vec3::Point3;
 
 pub struct Sphere {
     center: Point3,
     radius: f32,
+    material: Arc<Box<dyn Scatterable + Sync + Send>>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f32) -> Self {
-        Self { center, radius }
+    pub fn new(
+        center: Point3,
+        radius: f32,
+        material: Arc<Box<dyn Scatterable + Sync + Send>>,
+    ) -> Self {
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -37,7 +50,7 @@ impl Hittable for Sphere {
         let point = r.at(root);
         let outward_normal = (point - self.center) / self.radius;
 
-        let hit = HitRecord::new(point, root, r, outward_normal);
+        let hit = HitRecord::new(point, root, r, outward_normal, self.material.clone());
 
         Some(hit)
     }
