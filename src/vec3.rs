@@ -53,12 +53,19 @@ impl Vec3 {
         self / div
     }
 
-    pub fn color(self) -> String {
-        let r = (255.999 * self.x()) as i32;
-        let g = (255.999 * self.y()) as i32;
-        let b = (255.999 * self.z()) as i32;
+    pub fn color(self, samples: f32) -> String {
+        let mut r = self.x();
+        let mut g = self.y();
+        let mut b = self.z();
+        let scale = 1.0 / samples;
 
-        format!("{r} {g} {b}\n")
+        r *= scale;
+        g *= scale;
+        b *= scale;
+        let ir = (256.0 * r.clamp(0.0, 0.999)) as i32;
+        let ig = (256.0 * g.clamp(0.0, 0.999)) as i32;
+        let ib = (256.0 * b.clamp(0.0, 0.999)) as i32;
+        format!("{ir} {ig} {ib}\n")
     }
 }
 
