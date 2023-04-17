@@ -14,6 +14,7 @@ use crate::ray::Ray;
 
 use crate::vec3::Color;
 use crate::world::World;
+use axum::http::Response;
 use axum::response::{Html, IntoResponse};
 use axum::{routing::get, Router, Server};
 use rayon::prelude::*;
@@ -50,9 +51,19 @@ async fn root_get() -> impl IntoResponse {
     Html(markup)
 }
 
+async fn indexmjs_get() -> impl IntoResponse {
+    let index = tokio::fs::read_to_string("./www/index.mjs").await.unwrap();
+    Response::builder()
+        .header("content-type", "application/javascript;charset=utf-8")
+        .body(index)
+        .unwrap()
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let router = Router::new().route("/", get(root_get));
+    let router = Router::new()
+        .route("/", get(root_get))
+        .route("/index.mjs", get(indexmjs_get));
     let server = Server::bind(&"0.0.0.0:7032".parse().unwrap()).serve(router.into_make_service());
     let local_addr = server.local_addr();
     println!("Listening on {}", local_addr);
