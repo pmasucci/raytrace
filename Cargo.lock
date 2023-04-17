@@ -145,14 +145,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ray2"
-version = "0.1.0"
-dependencies = [
- "rand",
- "rayon",
-]
-
-[[package]]
 name = "rayon"
 version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -172,6 +164,14 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
  "num_cpus",
+]
+
+[[package]]
+name = "raytrace"
+version = "0.1.0"
+dependencies = [
+ "rand",
+ "rayon",
 ]
 
 [[package]]
