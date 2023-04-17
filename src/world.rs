@@ -1,4 +1,9 @@
-use crate::hittable::{HitRecord, Hittable};
+use crate::{
+    hittable::{HitRecord, Hittable},
+    scatterable::{Lambertian, Metal},
+    sphere::Sphere,
+    vec3::{Color, Point3},
+};
 use std::sync::Arc;
 
 pub struct World {
@@ -16,6 +21,49 @@ impl World {
 
     pub fn new() -> Self {
         Self { objects: vec![] }
+    }
+}
+
+impl Default for World {
+    fn default() -> Self {
+        let mut world = World::new();
+        let material_ground = Lambertian {
+            albedo: Color::new(0.8, 0.8, 0.0),
+        };
+        let material_center = Lambertian {
+            albedo: Color::new(0.7, 0.3, 0.3),
+        };
+        let material_left = Metal {
+            albedo: Color::new(0.8, 0.8, 0.8),
+        };
+        let material_right = Metal {
+            albedo: Color::new(0.8, 0.6, 0.2),
+        };
+
+        world.add(Box::new(Sphere::new(
+            Point3::new(0.0, -100.5, -1.0),
+            100.0,
+            Arc::new(Box::new(material_ground)),
+        )));
+
+        world.add(Box::new(Sphere::new(
+            Point3::new(0.0, 0.0, -1.0),
+            0.5,
+            Arc::new(Box::new(material_center)),
+        )));
+
+        world.add(Box::new(Sphere::new(
+            Point3::new(-1.0, 0.0, -1.0),
+            0.5,
+            Arc::new(Box::new(material_left)),
+        )));
+
+        world.add(Box::new(Sphere::new(
+            Point3::new(1.0, 0.0, -1.0),
+            0.5,
+            Arc::new(Box::new(material_right)),
+        )));
+        world
     }
 }
 
