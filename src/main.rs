@@ -7,27 +7,26 @@ mod sphere;
 mod vec3;
 mod world;
 
-use scatterable::{Lambertian, Metal};
-
 use crate::camera::Camera;
 use crate::hittable::Hittable;
 use crate::random::random_f32;
 use crate::ray::Ray;
-use crate::sphere::Sphere;
-use crate::vec3::{Color, Point3};
+
+use crate::vec3::Color;
 use crate::world::World;
+use axum::response::{Html, IntoResponse};
+use axum::{routing::get, Router, Server};
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufWriter, Error, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
 use std::time::Instant;
 
 const IMAGE_WIDTH: f32 = 3840.0;
 const ASPECT_RATIO: f32 = 16.0 / 9.0;
 const IMAGE_HEIGHT: f32 = IMAGE_WIDTH / ASPECT_RATIO;
-const SAMPLES_PER_PIXEL: f32 = 100.0;
-const MAX_DEPTH: i32 = 50;
+const SAMPLES_PER_PIXEL: f32 = 1.0;
+const MAX_DEPTH: i32 = 5;
 
 fn ray_color(r: Ray, world: &World, depth: i32) -> Color {
     if depth <= 0 {
@@ -46,7 +45,20 @@ fn ray_color(r: Ray, world: &World, depth: i32) -> Color {
     (1.0 - t) * Color::diagonal(1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
 
-fn main() -> Result<(), Error> {
+async fn root_get() -> impl IntoResponse {
+    let markup = tokio::fs::read_to_string("./www/index.html").await.unwrap();
+    Html(markup)
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    let router = Router::new().route("/", get(root_get));
+    let server = Server::bind(&"0.0.0.0:7032".parse().unwrap()).serve(router.into_make_service());
+    let local_addr = server.local_addr();
+    println!("Listening on {}", local_addr);
+
+    server.await.unwrap();
+
     let camera = Camera::new();
     let mut image = vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * 3.0) as usize];
     let bands: Vec<(usize, &mut [u8])> = image
@@ -58,9 +70,6 @@ fn main() -> Result<(), Error> {
 
     // Render here
 
-    let f = File::create("./image.ppm").expect("Unable to create file.");
-    let mut f = BufWriter::new(f);
-    f.write(format!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n").as_bytes())?;
     static ELAPSED: AtomicUsize = AtomicUsize::new(0);
     let start = Instant::now();
     bands.into_par_iter().for_each(|(i, band)| {
@@ -86,6 +95,10 @@ fn main() -> Result<(), Error> {
 
     println!("Frame time: {}ms", start.elapsed().as_millis());
 
+    // Write file here
+    let f = File::create("./image.ppm").expect("Unable to create file.");
+    let mut f = BufWriter::new(f);
+    f.write(format!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n").as_bytes())?;
     image.chunks(3).for_each(|color| {
         let _ = f.write(format!("{} {} {}\n", color[0], color[1], color[2]).as_bytes());
     });
