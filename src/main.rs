@@ -19,8 +19,9 @@ use crate::world::World;
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufWriter, Error, Write};
-use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Instant;
 
 const IMAGE_WIDTH: f32 = 3840.0;
 const ASPECT_RATIO: f32 = 16.0 / 9.0;
@@ -95,7 +96,8 @@ fn main() -> Result<(), Error> {
     let f = File::create("./image.ppm").expect("Unable to create file.");
     let mut f = BufWriter::new(f);
     f.write(format!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n").as_bytes())?;
-
+    static ELAPSED: AtomicUsize = AtomicUsize::new(0);
+    let start = Instant::now();
     bands.into_par_iter().for_each(|(i, band)| {
         for x in 0..IMAGE_WIDTH as usize {
             let mut pixel_color = Color::default();
@@ -110,28 +112,18 @@ fn main() -> Result<(), Error> {
             band[x * 3 + 1] = g;
             band[x * 3 + 2] = b;
         }
+        let elapsed_count = ELAPSED.fetch_add(1, Ordering::SeqCst) + 1;
+
+        if elapsed_count % 50 == 0 {
+            println!("{}/{}", elapsed_count, IMAGE_HEIGHT);
+        }
     });
+
+    println!("Frame time: {}ms", start.elapsed().as_millis());
 
     image.chunks(3).for_each(|color| {
         let _ = f.write(format!("{} {} {}\n", color[0], color[1], color[2]).as_bytes());
     });
-
-    // for j in (0..IMAGE_HEIGHT as i32).rev() {
-    //     if j % 50 == 0 {
-    //         println!("{j} scanlines remaining");
-    //     }
-    //     for i in 0..(IMAGE_WIDTH as i32) {
-    //         let mut pixel_color = Color::default();
-    //         for _sample in 0..SAMPLES_PER_PIXEL as i32 {
-    //             let u = (i as f32 + random_f32_range(0.0..=1.0)) / (IMAGE_WIDTH - 1.0);
-    //             let v = (j as f32 + random_f32_range(0.0..=1.0)) / (IMAGE_HEIGHT - 1.0);
-    //             let r = camera.get_ray(u, v);
-    //             pixel_color += ray_color(r, &world, MAX_DEPTH)
-    //         }
-
-    //         f.write(pixel_color.color(SAMPLES_PER_PIXEL).as_bytes())?;
-    //     }
-    // }
 
     Ok(())
 }
