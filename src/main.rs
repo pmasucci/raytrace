@@ -1,5 +1,8 @@
+#![feature(async_closure)]
 mod camera;
+mod constants;
 mod hittable;
+mod payload;
 mod random;
 mod ray;
 mod scatterable;
@@ -8,26 +11,30 @@ mod vec3;
 mod world;
 
 use crate::camera::Camera;
+use crate::constants::{ASPECT_RATIO, IMAGE_HEIGHT, IMAGE_WIDTH, MAX_DEPTH, SAMPLES_PER_PIXEL};
 use crate::hittable::Hittable;
+use crate::payload::{BigBoy, Payload};
 use crate::random::random_f32;
 use crate::ray::Ray;
 
 use crate::vec3::Color;
 use crate::world::World;
+use axum::extract::{
+    ws::{Message, WebSocket, WebSocketUpgrade},
+    State,
+};
 use axum::http::Response;
 use axum::response::{Html, IntoResponse};
 use axum::{routing::get, Router, Server};
+use futures::{sink::SinkExt, stream::StreamExt};
 use rayon::prelude::*;
-use std::fs::File;
+use std::collections::{HashMap, HashSet};
 use std::io::{BufWriter, Error, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::time::Instant;
-
-const IMAGE_WIDTH: f32 = 3840.0;
-const ASPECT_RATIO: f32 = 16.0 / 9.0;
-const IMAGE_HEIGHT: f32 = IMAGE_WIDTH / ASPECT_RATIO;
-const SAMPLES_PER_PIXEL: f32 = 1.0;
-const MAX_DEPTH: i32 = 5;
+use std::{fs::File, sync::Mutex};
+use tokio::{sync::broadcast, task};
 
 fn ray_color(r: Ray, world: &World, depth: i32) -> Color {
     if depth <= 0 {
@@ -59,31 +66,78 @@ async fn indexmjs_get() -> impl IntoResponse {
         .unwrap()
 }
 
+async fn websocket_get(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    ws.on_upgrade(|ws: WebSocket| websocket(ws, state))
+}
+
+async fn websocket(stream: WebSocket, state: Arc<AppState>) {
+    let (mut sender, mut receiver) = stream.split();
+    let mut rx = state.tx.subscribe();
+    println!("Connection established.");
+    let send_task = tokio::spawn(async move {
+        while let Ok(msg) = rx.recv().await {
+            if sender.send(Message::Text(msg)).await.is_err() {
+                break;
+            }
+        }
+    });
+
+    let recv_task = tokio::spawn(async move {
+        while let Some(Ok(msg)) = receiver.next().await {
+            let render_state = state.clone();
+            task::spawn_blocking(move || {
+                render(
+                    &render_state,
+                    vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * 3.0) as usize],
+                );
+            });
+        }
+    });
+}
+
+struct AppState {
+    tx: broadcast::Sender<String>,
+    pixels: Arc<Mutex<Vec<u8>>>,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let (tx, _rx) = broadcast::channel(10);
+    let image = vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * 3.0) as usize];
+    let app_state = Arc::new(AppState {
+        tx,
+        pixels: Arc::new(Mutex::new(image)),
+    });
     let router = Router::new()
         .route("/", get(root_get))
-        .route("/index.mjs", get(indexmjs_get));
+        .route("/index.mjs", get(indexmjs_get))
+        .route("/ws", get(websocket_get))
+        .with_state(app_state.clone());
+
     let server = Server::bind(&"0.0.0.0:7032".parse().unwrap()).serve(router.into_make_service());
     let local_addr = server.local_addr();
     println!("Listening on {}", local_addr);
 
     server.await.unwrap();
 
+    Ok(())
+}
+
+fn render(state: &Arc<AppState>, image: Vec<u8>) -> impl IntoResponse {
     let camera = Camera::new();
-    let mut image = vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * 3.0) as usize];
-    let bands: Vec<(usize, &mut [u8])> = image
-        .chunks_mut((IMAGE_WIDTH * 3.0) as usize)
+    let bands: Vec<(usize, &[u8])> = image
+        .chunks((IMAGE_WIDTH * 3.0) as usize)
         .enumerate()
         .collect();
-
     let world = World::default();
 
     // Render here
-
     static ELAPSED: AtomicUsize = AtomicUsize::new(0);
     let start = Instant::now();
-    bands.into_par_iter().for_each(|(i, band)| {
+    bands.into_par_iter().for_each(|(i, _band)| {
         for x in 0..IMAGE_WIDTH as usize {
             let mut pixel_color = Color::default();
             for _s in 0..SAMPLES_PER_PIXEL as i32 {
@@ -93,26 +147,33 @@ async fn main() -> Result<(), Error> {
                 pixel_color += ray_color(r, &world, MAX_DEPTH);
             }
             let (r, g, b) = pixel_color.color(SAMPLES_PER_PIXEL);
-            band[x * 3] = r;
-            band[x * 3 + 1] = g;
-            band[x * 3 + 2] = b;
+            let image = &mut state.pixels.lock().unwrap();
+            let index = x * 3 + i * 3 * IMAGE_WIDTH as usize;
+            image[index] = r;
+            image[index + 1] = g;
+            image[index + 2] = b;
         }
         let elapsed_count = ELAPSED.fetch_add(1, Ordering::SeqCst) + 1;
-
-        if elapsed_count % 50 == 0 {
+        let left_bound = i * 3 * IMAGE_WIDTH as usize;
+        let right_bound = left_bound + 3 * IMAGE_WIDTH as usize;
+        let payload = Payload {
+            row: i,
+            pixels: state.pixels.lock().unwrap()[left_bound..right_bound]
+                .try_into()
+                .unwrap(),
+        };
+        let payload = serde_json::to_string(&payload).unwrap();
+        state.tx.send(payload).unwrap();
+        if elapsed_count % 50 == 0 || elapsed_count == 168 {
             println!("{}/{}", elapsed_count, IMAGE_HEIGHT);
         }
     });
-
+    state.tx.send(format!("end")).unwrap();
     println!("Frame time: {}ms", start.elapsed().as_millis());
-
-    // Write file here
     let f = File::create("./image.ppm").expect("Unable to create file.");
     let mut f = BufWriter::new(f);
-    f.write(format!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n").as_bytes())?;
-    image.chunks(3).for_each(|color| {
+    let _ = f.write(format!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n").as_bytes());
+    state.pixels.lock().unwrap().chunks(3).for_each(|color| {
         let _ = f.write(format!("{} {} {}\n", color[0], color[1], color[2]).as_bytes());
     });
-
-    Ok(())
 }

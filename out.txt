@@ -1,0 +1,228 @@
+Listening on 0.0.0.0:7032
+we are about to process 10 rows of width 30
+writing index: 20
+writing index: 30
+writing index: 50
+writing index: 0
+writing index: 3
+writing index: 40
+writing index: 33
+writing index: 70
+writing index: 53
+writing index: 23
+writing index: 6
+writing index: 10
+writing index: 13
+writing index: 60
+writing index: 36
+writing index: 90
+writing index: 80
+writing index: 26
+writing index: 93
+writing index: 9
+writing index: 73
+writing index: 43
+writing index: 16
+writing index: 46
+writing index: 19
+writing index: 39
+writing index: 63
+writing index: 42
+writing index: 29
+writing index: 12
+writing index: 66
+writing index: 96
+writing index: 22
+writing index: 69
+writing index: 49
+writing index: 72
+writing index: 45
+writing index: 32
+writing index: 75
+writing index: 15
+writing index: 83
+writing index: 76
+writing index: 25
+writing index: 86
+writing index: 28
+writing index: 99
+writing index: 56
+writing index: 52
+writing index: 59
+writing index: 35
+writing index: 62
+writing index: 18
+writing index: 21
+writing index: 31
+writing index: 79
+writing index: 89
+writing index: 102
+writing index: 48
+writing index: 55
+writing index: 51
+writing index: 38
+writing index: 78
+writing index: 24
+writing index: 34
+writing index: 82
+writing index: 92
+writing index: 105
+writing index: 65
+writing index: 85
+writing index: 58
+writing index: 95
+writing index: 41
+writing index: 61
+writing index: 27
+row 0
+writing index: 98
+writing index: 64
+writing index: 37
+writing index: 108
+row 1
+writing index: 54
+writing index: 68
+writing index: 111
+writing index: 101
+writing index: 81
+writing index: 71
+writing index: 44
+writing index: 67
+row 4
+writing index: 57
+row 3
+writing index: 114
+writing index: 88
+writing index: 84
+writing index: 47
+row 2
+writing index: 87
+row 6
+writing index: 74
+writing index: 117
+row 9
+writing index: 104
+writing index: 91
+writing index: 77
+row 5
+writing index: 107
+row 8
+writing index: 94
+writing index: 97
+row 7
+Frame time: 3ms
+[201, 225, 255, 198, 223, 255, 196, 221, 255, 193, 220, 255, 192, 220, 255, 193, 220, 255, 195, 221, 255, 199, 223, 255, 201, 225, 255, 204, 226, 255, 255, 202, 225, 255, 205, 226, 255, 207, 228, 255, 255, 205, 225, 251, 207, 227, 251, 210, 229, 255, 188, 167, 169, 118, 177, 175, 127, 204, 215, 219, 105, 177, 172, 114, 182, 175, 114, 192, 185, 137, 62, 180, 170, 91, 187, 175, 101, 192, 178, 106, 6, 150, 144, 0, 153, 149, 0, 158, 158, 11, 0, 138, 122, 0, 148, 141, 0, 169, 184, 0, 0, 139, 136, 0, 155, 162, 0, 167, 182, 0, 0, 158, 165, 0, 162, 171, 0, 165, 179, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Listening on 0.0.0.0:7032
+we are about to process 10 rows of width 30
+writing index: 0
+writing index: 60
+writing index: 30
+writing index: 3
+writing index: 180
+writing index: 63
+writing index: 66
+writing index: 183
+writing index: 120
+writing index: 33
+writing index: 90
+writing index: 186
+writing index: 240
+writing index: 270
+writing index: 210
+writing index: 150
+writing index: 243
+writing index: 123
+writing index: 36
+writing index: 126
+writing index: 6
+writing index: 129
+writing index: 93
+writing index: 132
+writing index: 96
+writing index: 273
+writing index: 135
+writing index: 69
+writing index: 153
+writing index: 276
+writing index: 39
+writing index: 246
+writing index: 9
+writing index: 279
+writing index: 99
+writing index: 72
+writing index: 282
+writing index: 213
+writing index: 42
+writing index: 285
+writing index: 12
+writing index: 189
+writing index: 249
+writing index: 192
+writing index: 75
+writing index: 138
+writing index: 45
+writing index: 141
+writing index: 156
+writing index: 15
+writing index: 18
+writing index: 216
+writing index: 159
+writing index: 102
+writing index: 78
+writing index: 219
+writing index: 81
+writing index: 252
+writing index: 222
+writing index: 48
+writing index: 144
+writing index: 21
+writing index: 147
+row 4
+writing index: 225
+writing index: 24
+writing index: 105
+writing index: 27
+row 0
+writing index: 255
+writing index: 162
+writing index: 108
+writing index: 84
+writing index: 288
+writing index: 165
+writing index: 258
+writing index: 51
+writing index: 87
+row 2
+writing index: 111
+writing index: 195
+writing index: 114
+writing index: 228
+writing index: 117
+row 3
+writing index: 54
+writing index: 291
+writing index: 168
+writing index: 261
+writing index: 57
+row 1
+writing index: 198
+writing index: 231
+writing index: 294
+writing index: 171
+writing index: 297
+row 9
+writing index: 234
+writing index: 264
+writing index: 237
+row 7
+writing index: 201
+writing index: 267
+row 8
+writing index: 174
+writing index: 204
+writing index: 177
+row 5
+writing index: 207
+row 6
+Frame time: 2ms
+[201, 225, 255, 199, 223, 255, 195, 221, 255, 193, 220, 255, 192, 220, 255, 193, 220, 255, 196, 222, 255, 198, 223, 255, 201, 225, 255, 204, 226, 255, 205, 226, 255, 202, 225, 255, 199, 223, 255, 196, 222, 255, 195, 221, 255, 196, 222, 255, 199, 223, 255, 202, 225, 255, 205, 226, 255, 207, 228, 255, 208, 228, 254, 205, 226, 254, 203, 226, 255, 201, 224, 255, 198, 220, 251, 201, 224, 255, 204, 226, 255, 205, 225, 251, 208, 228, 254, 210, 229, 255, 176, 200, 230, 166, 194, 229, 188, 211, 242, 192, 194, 217, 166, 122, 130, 193, 194, 217, 192, 205, 208, 166, 168, 116, 175, 173, 121, 206, 218, 227, 182, 202, 228, 178, 200, 228, 169, 186, 216, 167, 135, 138, 165, 119, 119, 169, 136, 137, 168, 159, 106, 176, 172, 114, 182, 175, 114, 191, 183, 131, 184, 199, 188, 179, 196, 181, 148, 137, 128, 153, 110, 94, 159, 115, 103, 157, 111, 103, 149, 115, 65, 184, 173, 97, 184, 172, 95, 190, 177, 103, 154, 174, 0, 148, 166, 0, 128, 127, 16, 152, 118, 84, 156, 113, 91, 152, 117, 81, 131, 110, 7, 148, 140, 0, 153, 149, 0, 158, 158, 25, 148, 166, 0, 137, 152, 0, 126, 127, 0, 142, 119, 46, 145, 103, 70, 142, 127, 34, 136, 127, 0, 142, 126, 0, 149, 141, 0, 167, 182, 0, 157, 173, 0, 140, 151, 0, 147, 152, 0, 139, 132, 0, 130, 120, 0, 140, 139, 0, 150, 152, 0, 135, 130, 0, 158, 165, 0, 170, 187, 0, 156, 172, 0, 156, 169, 0, 156, 166, 0, 146, 148, 0, 155, 162, 0, 157, 161, 0, 157, 167, 0, 150, 158, 0, 154, 163, 0, 165, 176, 0]
