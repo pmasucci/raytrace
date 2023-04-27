@@ -28,7 +28,7 @@ use axum::response::{Html, IntoResponse};
 use axum::{routing::get, Router, Server};
 use futures::{sink::SinkExt, stream::StreamExt};
 use rayon::prelude::*;
-use std::collections::{HashMap, HashSet};
+use serde::Deserialize;
 use std::io::{BufWriter, Error, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -66,6 +66,14 @@ async fn indexmjs_get() -> impl IntoResponse {
         .unwrap()
 }
 
+async fn css_get() -> impl IntoResponse {
+    let css = tokio::fs::read_to_string("./www/style.css").await.unwrap();
+    Response::builder()
+        .header("content-type", "text/css;charset=utf-8")
+        .body(css)
+        .unwrap()
+}
+
 async fn websocket_get(
     ws: WebSocketUpgrade,
     State(state): State<Arc<AppState>>,
@@ -87,13 +95,26 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
 
     let recv_task = tokio::spawn(async move {
         while let Some(Ok(msg)) = receiver.next().await {
-            let render_state = state.clone();
-            task::spawn_blocking(move || {
-                render(
-                    &render_state,
-                    vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * 3.0) as usize],
-                );
-            });
+            let render_settings = &mut state.render_settings.lock().unwrap();
+            let message: Result<RenderSettings, _> = serde_json::from_str(msg.to_text().unwrap());
+            let settings = match message() {
+                RenderSettings => message.unwrap(),
+                Err(e) => {println!("{:?}", e); panic!("oh no {}", e);},
+            }
+            // if let Ok(settings) =
+            //     serde_json::from_str::<Result<serde_json::Value, ()>>(msg.to_text().unwrap())
+            //         .unwrap()
+            // {
+            //     println!("butt butt butt");
+            if msg.into_text().unwrap() == "beep" {
+                let render_state = state.clone();
+                task::spawn_blocking(move || {
+                    render(
+                        &render_state,
+                        vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * 3.0) as usize],
+                    );
+                });
+            }
         }
     });
 }
@@ -101,6 +122,12 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
 struct AppState {
     tx: broadcast::Sender<String>,
     pixels: Arc<Mutex<Vec<u8>>>,
+    render_settings: Arc<Mutex<RenderSettings>>,
+}
+#[derive(Deserialize)]
+struct RenderSettings {
+    width: f32,
+    samples: f32,
 }
 
 #[tokio::main]
@@ -110,10 +137,15 @@ async fn main() -> Result<(), Error> {
     let app_state = Arc::new(AppState {
         tx,
         pixels: Arc::new(Mutex::new(image)),
+        render_settings: Arc::new(Mutex::new(RenderSettings {
+            width: IMAGE_WIDTH,
+            samples: SAMPLES_PER_PIXEL,
+        })),
     });
     let router = Router::new()
         .route("/", get(root_get))
         .route("/index.mjs", get(indexmjs_get))
+        .route("/style.css", get(css_get))
         .route("/ws", get(websocket_get))
         .with_state(app_state.clone());
 
@@ -170,9 +202,11 @@ fn render(state: &Arc<AppState>, image: Vec<u8>) -> impl IntoResponse {
     });
     state.tx.send(format!("end")).unwrap();
     println!("Frame time: {}ms", start.elapsed().as_millis());
+
     let f = File::create("./image.ppm").expect("Unable to create file.");
     let mut f = BufWriter::new(f);
     let _ = f.write(format!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255\n").as_bytes());
+
     state.pixels.lock().unwrap().chunks(3).for_each(|color| {
         let _ = f.write(format!("{} {} {}\n", color[0], color[1], color[2]).as_bytes());
     });

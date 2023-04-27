@@ -4,11 +4,40 @@
 <head>
   <title>raytrace</title>
   <script type="module" src="/index.mjs"></script>
+  <link rel="stylesheet" type="text/css" href="/style.css" />
 </head>
 
 <body>
-  <button type="submit">Butan </button>
-  <canvas width="3840" height="2160"></canvas>
+  <header>
+    <nav>
+      <a href="#" class="header-logo">Raytracer</a>
+      <a href="#" class="settings-menu">Menu</a>
+    </nav>
+  </header>
+
+  <div class="form-container">
+    <form action="" class="render-form">
+      <div class="row">
+        <label for="width">Width: </label>
+        <input type="text" name="width" id="width" value="3840"></input>
+      </div>
+      <div class="row">
+        <label for="aspect-ratio">Aspect Ratio:</label>
+        <select name="aspect-ratio" id="aspect-ratio">
+          <option value="16:9">16:9</option>
+        </select>
+      </div class="row">
+      <div class="row">
+        <label for="samples">Samples per Pixel:</label>
+        <input type="number" name="samples" id="samples" value="100" />
+      </div>
+      <input type="submit" class="render-button" value="Render" />
+    </form>
+  </div>
+  <!-- <button type="submit">Butan </button> -->
+  <div class="canvas-container">
+    <canvas width="3840" height="2160"></canvas>
+  </div>
 </body>
 
 </html>
